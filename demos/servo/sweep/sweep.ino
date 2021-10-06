@@ -7,13 +7,6 @@
  http://www.arduino.cc/en/Tutorial/Sweep
 */
 
-/*
-Connections:
-Black wire goes to GND
-Red wire goes to 5V
-Yellow wire goes to digital 9
-*/
-
 #include <Servo.h>
 
 Servo myservo;  // create servo object to control a servo
