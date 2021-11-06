@@ -1,9 +1,10 @@
 #include <Wire.h>
 #include "Adafruit_TCS34725.h"
+#include <Servo.h>
 
-
+Servo myservo;
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_540MS, TCS34725_GAIN_1X);
-const uint16_t red_max = 1072, green_max = 1633, blue_max = 1607;
+const uint16_t red_max = 546, green_max = 816, blue_max = 536;
 
 /* Connect SCL    to analog 5
    Connect SDA    to analog 4
@@ -11,6 +12,7 @@ const uint16_t red_max = 1072, green_max = 1633, blue_max = 1607;
    Connect GROUND to common ground */
 
 void setup() {
+  myservo.attach(9);
   Serial.begin(9600);
 
   if (tcs.begin()) {
@@ -19,12 +21,20 @@ void setup() {
     Serial.println("Sensor not found.");
     while (1);
   }
+
+  myservo.write(30);
+  delay(1000);
+  myservo.write(180);
+  delay(5000);
+  myservo.write(94);
+
+  // myservo.write(30);
 }
 
 void loop() {
   uint16_t clear, red, green, blue;
   uint16_t n_red, n_green, n_blue;
-  bool calibrating = false;
+  bool calibrating = true;
 
   tcs.getRawData(&red, &green, &blue, &clear);
 
@@ -38,18 +48,16 @@ void loop() {
     Serial.print("\tB\t"); Serial.print(n_blue);
     Serial.println();
   } else {
-    if (n_red > 480 && n_green > 350) {
-      Serial.print("Skittle is yellow\n");
-    } else if (n_red > 400) {
-      Serial.print("Skittle is orange\n");
-    } else if (n_green > 280) {
-      Serial.print("Skittle is green\n");
-    } else if (n_green > 250) {
-      Serial.print("There is no skittle\n");
-    } else if (n_red > 265) {
-      Serial.print("Skittle is red\n");
-    } else {
+    if (n_blue > 265 && n_green > 195) {
       Serial.print("Skittle is purple\n");
+    } else if (n_red > 220 && n_green > 180) {
+      Serial.print("Skittle is yellow\n");
+    } else if (n_red > 210) {
+      Serial.print("Skittle is orange\n");
+    } else if (n_green > 175 && n_blue > 240) {
+      Serial.print("Skittle is green\n");
+    } else {
+      Serial.print("Skittle is red\n");
     }
   }
 
