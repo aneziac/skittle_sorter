@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include "Adafruit_TCS34725.h"
 #include <Servo.h>
-#include <fstream>
 
 /*
 Color sensor connections:
@@ -70,7 +69,11 @@ void loop() {
     for (int i = 0; i < 10; i++) {
       top_servo.write(sense_angle - 5 + i);
       get_norm_rgb(n_red, n_green, n_blue);
-      // output to file
+
+      Serial.print("R\t"); Serial.print(n_red);
+      Serial.print("\tG\t"); Serial.print(n_green);
+      Serial.print("\tB\t"); Serial.print(n_blue);
+      Serial.println();
 
       delay(1000);
       top_servo.write(drop_angle);
