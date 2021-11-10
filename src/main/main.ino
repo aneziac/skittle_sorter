@@ -16,7 +16,7 @@ Top servo motor connections:
   Connect red wire to 5V
   Connect white wire to digital 9
 
-Bottom servo motor connections:
+Slide servo motor connections:
 
   Connect black wire to GND
   Connect red wire to 5V
@@ -74,7 +74,7 @@ void slidepos(int x)
 
 void setup() {
   top_servo.attach(9);
-  bottom_servo.attach(10);
+  slide_servo.attach(10);
   Serial.begin(9600);
 
   if (tcs.begin()) {
