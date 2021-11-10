@@ -24,8 +24,8 @@ Slide servo motor connections:
 */
 
 // constants
-const Servo top_servo, slide_servo;
-const Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_540MS, TCS34725_GAIN_1X);
+Servo top_servo, slide_servo;
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_540MS, TCS34725_GAIN_1X);
 
 const uint16_t red_max = 546, green_max = 816, blue_max = 536;
 const double scaled_max = 255.0;
@@ -85,7 +85,7 @@ void setup() {
   }
 
   top_servo.write(top_servo_angle.drop); // Return to default state
-  delay(2000);
+  delay(4000);
 }
 
 void loop() {
@@ -94,6 +94,7 @@ void loop() {
   if (calibrating) {
     for (int i = 0; i < 7; i++) {
       top_servo.write(top_servo_angle.sense - 3 + i);
+      delay(1000);
       get_norm_rgb(n_red, n_green, n_blue);
 
       Serial.print("R\t"); Serial.print(n_red);
@@ -101,12 +102,13 @@ void loop() {
       Serial.print("\tB\t"); Serial.print(n_blue);
       Serial.println();
 
-      delay(1000);
       top_servo.write(top_servo_angle.drop);
+      delay(1000);
     }
 
-    top_servo.write(top_servo_angle.drop);
-    return 0;
+    top_servo.write(top_servo_angle.sort);
+    delay(1000);
+    exit(0);
   }
 
   top_servo.write(top_servo_angle.sense);
