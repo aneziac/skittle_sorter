@@ -24,7 +24,7 @@ Bottom servo motor connections:
 */
 
 // constants
-const Servo top_servo, bottom_servo;
+const Servo top_servo, slide_servo;
 const Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_540MS, TCS34725_GAIN_1X);
 
 const uint16_t red_max = 546, green_max = 816, blue_max = 536;
@@ -33,9 +33,6 @@ const double scaled_max = 255.0;
 struct {  // top servo angles
   const uint16_t drop = 180, sense = 94, sort = 30;
 } top_servo_angle;
-struct {
-  const uint16_t purple = 0, yellow = 0, red = 0, blue = 0, green = 0;
-} bottom_servo_angle;
 
 bool calibrating = true;
 
@@ -48,6 +45,31 @@ void get_norm_rgb(uint16_t &n_red, uint16_t &n_green, uint16_t &n_blue) {
   n_red = int(scaled_max * red / red_max);
   n_green = int(scaled_max * blue / green_max);
   n_blue = int(scaled_max * green / blue_max);
+}
+
+// change position of slide servo
+void slidepos(int x)
+{
+  if (x == 1)
+  {
+    slide_servo.write(160);
+  }
+  else if(x == 2)
+  {
+    slide_servo.write(140);
+  }
+  else if(x == 3)
+  {
+    slide_servo.write(100);
+  }
+  else if(x == 4)
+  {
+    slide_servo.write(50);
+  }
+  else if(x == 5)
+  {
+    slide_servo.write(30);
+  }
 }
 
 void setup() {
@@ -93,19 +115,19 @@ void loop() {
   /*
   if (n_blue > 265 && n_green > 195) {
     Serial.print("Skittle is purple\n");
-    bottom_servo.write(bottom_servo_angle.purple);
+    slidepos(1);
   } else if (n_red > 220 && n_green > 180) {
     Serial.print("Skittle is yellow\n");
-    bottom_servo.write(bottom_servo_angle.yellow);
+    slidepos(2);
   } else if (n_red > 210) {
     Serial.print("Skittle is orange\n");
-    bottom_servo.write(bottom_servo_angle.orange);
+    slidepos(3);
   } else if (n_green > 175 && n_blue > 240) {
     Serial.print("Skittle is green\n");
-    bottom_servo.write(bottom_servo_angle.green);
+    slidepos(4);
   } else {
     Serial.print("Skittle is red\n");
-    bottom_servo.write(bottom_servo_angle.red);
+    slidepos(5);
   }
   */
 
