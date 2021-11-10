@@ -9,7 +9,29 @@ const uint16_t red_max = 1072, green_max = 1633, blue_max = 1607;
    Connect SDA    to analog 4
    Connect VDD    to 3.3V DC
    Connect GROUND to common ground */
-
+void slidepos(int x)
+{
+  if (x == 1)
+  {
+    slideservo.write(160);
+  }
+  else if(x == 2)
+  {
+    slideservo.write(140);
+  }
+  else if(x == 3)
+  {
+    slideservo.write(100);
+  }
+  else if(x == 4)
+  {
+    slideservo.write(50);
+  }
+  else if(x == 5)
+  {
+    slideservo.write(30);
+  }
+}
 void setup() {
   Serial.begin(9600);
 
