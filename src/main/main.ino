@@ -23,10 +23,18 @@ Slide servo motor connections:
   Connect yellow wire to digital 10
 */
 
-// constants
+// define integers associated with each skittle color
+#define RED 1
+#define ORANGE 2
+#define YELLOW 3
+#define GREEN 4
+#define PURPLE 5
+
+// servo and color sensor
 Servo top_servo, slide_servo;
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_540MS, TCS34725_GAIN_1X);
 
+// constants
 const uint16_t red_max = 546, green_max = 816, blue_max = 536;
 const double scaled_max = 255.0;
 
@@ -35,6 +43,10 @@ struct {  // top servo angles
 } top_servo_angle;
 
 bool calibrating = true;
+
+int determine_color(uint16_t r, uint16_t g, uint16_t b) {
+
+}
 
 // receive and normalize RGB values so they fall into the closed interval [0, scaled_max]
 void get_norm_rgb(uint16_t &n_red, uint16_t &n_green, uint16_t &n_blue) {
@@ -50,23 +62,23 @@ void get_norm_rgb(uint16_t &n_red, uint16_t &n_green, uint16_t &n_blue) {
 // change position of slide servo
 void slidepos(int x)
 {
-  if (x == 1)
+  if (x == RED)
   {
     slide_servo.write(160);
   }
-  else if(x == 2)
+  else if(x == ORANGE)
   {
     slide_servo.write(140);
   }
-  else if(x == 3)
+  else if(x == YELLOW)
   {
     slide_servo.write(100);
   }
-  else if(x == 4)
+  else if(x == GREEN)
   {
     slide_servo.write(50);
   }
-  else if(x == 5)
+  else if(x == PURPLE)
   {
     slide_servo.write(30);
   }
@@ -114,24 +126,8 @@ void loop() {
   top_servo.write(top_servo_angle.sense);
   get_norm_rgb(n_red, n_green, n_blue);
 
-  /*
-  if (n_blue > 265 && n_green > 195) {
-    Serial.print("Skittle is purple\n");
-    slidepos(1);
-  } else if (n_red > 220 && n_green > 180) {
-    Serial.print("Skittle is yellow\n");
-    slidepos(2);
-  } else if (n_red > 210) {
-    Serial.print("Skittle is orange\n");
-    slidepos(3);
-  } else if (n_green > 175 && n_blue > 240) {
-    Serial.print("Skittle is green\n");
-    slidepos(4);
-  } else {
-    Serial.print("Skittle is red\n");
-    slidepos(5);
-  }
-  */
+  int color = determine_color(n_red, n_green, n_blue);
+  slidepos(color);
 
   delay(2000);
   top_servo.write(top_servo_angle.sort);
