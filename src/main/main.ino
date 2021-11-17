@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include "Adafruit_TCS34725.h"
 #include <Servo.h>
+#include <Arduino_KNN.h>
 
 /*
 Color sensor connections:
@@ -24,19 +25,161 @@ Slide servo motor connections:
 */
 
 // define integers associated with each skittle color
-#define RED 1
-#define ORANGE 2
-#define YELLOW 3
-#define GREEN 4
-#define PURPLE 5
+#define NONE 0
+#define GREEN 1
+#define RED 2
+#define PURPLE 3
+#define ORANGE 4
+#define YELLOW 5
 
-// servo and color sensor
+// servo, color sensor, and classifier
 Servo top_servo, slide_servo;
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_540MS, TCS34725_GAIN_1X);
+KNNClassifier color_KNN(3);
 
 // constants
 const uint16_t red_max = 546, green_max = 816, blue_max = 536;
 const double scaled_max = 255.0;
+const uint16_t calib_array[6][21][3] = [
+  [
+    [213, 172, 293],
+    [188, 142, 249],
+    [205, 162, 279],
+    [212, 171, 292],
+    [183, 137, 241],
+    [203, 161, 277],
+    [214, 173, 295],
+    [226, 183, 310],
+    [197, 150, 261],
+    [217, 173, 295],
+    [224, 182, 309],
+    [192, 145, 254],
+    [217, 173, 297],
+    [231, 189, 321],
+    [232, 184, 314],
+    [203, 152, 267],
+    [222, 175, 300],
+    [230, 184, 314],
+    [200, 147, 262],
+    [224, 176, 304],
+    [237, 190, 326]
+  ],
+  [
+    [191, 146, 304],
+    [172, 126, 249],
+    [181, 139, 274],
+    [179, 136, 286],
+    [176, 123, 259],
+    [177, 139, 268],
+    [175, 140, 272],
+    [196, 157, 298],
+    [187, 137, 263],
+    [193, 151, 287],
+    [194, 159, 297],
+    [181, 133, 255],
+    [195, 152, 296],
+    [205, 166, 321],
+    [196, 157, 293],
+    [182, 135, 259],
+    [197, 153, 293],
+    [194, 157, 294],
+    [183, 134, 255],
+    [198, 154, 297],
+    [200, 162, 315]
+  ],
+  [
+    [190, 131, 218],
+    [181, 119, 207],
+    [179, 132, 223],
+    [182, 134, 223],
+    [172, 118, 206],
+    [179, 126, 214],
+    [184, 137, 228],
+    [208, 158, 264],
+    [186, 131, 227],
+    [213, 150, 259],
+    [229, 185, 315],
+    [195, 146, 257],
+    [224, 177, 304],
+    [237, 192, 328],
+    [201, 153, 256],
+    [185, 134, 231],
+    [198, 145, 243],
+    [200, 153, 256],
+    [180, 128, 224],
+    [203, 147, 247],
+    [208, 163, 270]
+  ],
+  [
+    [159, 126, 216],
+    [148, 113, 197],
+    [152, 125, 211],
+    [152, 126, 213],
+    [157, 119, 208],
+    [158, 129, 220],
+    [160, 138, 231],
+    [170, 145, 242],
+    [159, 126, 216],
+    [167, 139, 233],
+    [177, 149, 250],
+    [173, 130, 229],
+    [177, 144, 245],
+    [179, 153, 256],
+    [169, 142, 238],
+    [170, 129, 225],
+    [172, 141, 239],
+    [172, 147, 245],
+    [169, 127, 224],
+    [178, 146, 248],
+    [179, 154, 258]
+  ],
+  [
+    [281, 132, 242],
+    [230, 123, 226],
+    [250, 136, 245],
+    [264, 137, 247],
+    [213, 120, 219],
+    [233, 138, 243],
+    [279, 132, 245],
+    [281, 132, 242],
+    [230, 123, 226],
+    [250, 136, 245],
+    [264, 137, 247],
+    [213, 120, 219],
+    [233, 138, 243],
+    [279, 132, 245],
+    [258, 155, 271],
+    [224, 135, 242],
+    [253, 150, 263],
+    [257, 155, 269],
+    [217, 135, 242],
+    [244, 154, 269],
+    [257, 168, 290]
+  ],
+  [
+    [328, 156, 371],
+    [218, 131, 264],
+    [247, 143, 296],
+    [291, 142, 330],
+    [226, 128, 268],
+    [254, 142, 299],
+    [255, 148, 306],
+    [308, 160, 353],
+    [225, 137, 271],
+    [264, 158, 317],
+    [304, 165, 353],
+    [224, 139, 273],
+    [271, 162, 331],
+    [284, 176, 350],
+    [266, 161, 323],
+    [230, 138, 276],
+    [259, 158, 315],
+    [275, 161, 329],
+    [217, 136, 264],
+    [255, 159, 312],
+    [281, 175, 346]
+  ]
+]
 
 struct {  // top servo angles
   const uint16_t drop = 180, sense = 94, sort = 30;
@@ -44,8 +187,16 @@ struct {  // top servo angles
 
 bool calibrating = true;
 
-int determine_color(uint16_t r, uint16_t g, uint16_t b) {
+void read_calibration_data() {
+  for (int i = 0; i < 6 * 21; i++) {
+    color_KNN.addExample(calib_array[i / 6][i % 21], i / 6);
+  }
+}
 
+// uses K-nearest neighbors library: see https://github.com/arduino-libraries/Arduino_KNN
+int determine_color(uint16_t r, uint16_t g, uint16_t b) {
+  const uint16_t color_vec[3] = {r, g, b};
+  return colorKNN.classify(color_vec, 5);  // classify with k = 5
 }
 
 // receive and normalize RGB values so they fall into the closed interval [0, scaled_max]
@@ -89,6 +240,8 @@ void setup() {
   slide_servo.attach(10);
   Serial.begin(9600);
 
+  read_calibration_data();
+
   if (tcs.begin()) {
     Serial.println("Connected to sensor.");
   } else {
@@ -126,8 +279,8 @@ void loop() {
   top_servo.write(top_servo_angle.sense);
   get_norm_rgb(n_red, n_green, n_blue);
 
-  int color = determine_color(n_red, n_green, n_blue);
-  slidepos(color);
+  int skittle_color = determine_color(n_red, n_green, n_blue);
+  slidepos(skittle_color);
 
   delay(2000);
   top_servo.write(top_servo_angle.sort);

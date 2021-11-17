@@ -31,6 +31,7 @@ for c, color in enumerate(colors):
         color_idx = [color_dict[plot_vs[0]], color_dict[plot_vs[1]]]
         plt.scatter(color_array[:, color_idx[0]], color_array[:, color_idx[1]], marker='o', color=color)
 
+    print(repr(color_array.astype(int)))
 
 #classifier = OneVsRestClassifier(LinearSVC())
 classifier = OneVsRestClassifier(KNeighborsClassifier(n_neighbors=5))
