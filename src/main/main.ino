@@ -213,25 +213,29 @@ void get_norm_rgb(uint16_t &n_red, uint16_t &n_green, uint16_t &n_blue) {
 // change position of slide servo
 void slidepos(int x)
 {
-  if (x == RED)
-  {
-    slide_servo.write(160);
-  }
-  else if(x == ORANGE)
-  {
-    slide_servo.write(140);
-  }
-  else if(x == YELLOW)
-  {
-    slide_servo.write(100);
-  }
-  else if(x == GREEN)
-  {
-    slide_servo.write(50);
-  }
-  else if(x == PURPLE)
-  {
-    slide_servo.write(30);
+  switch (x) {
+    case RED:
+      slide_servo.write(160);
+      break;
+
+    case ORANGE:
+      slide_servo.write(140);
+      break;
+
+    case YELLOW:
+      slide_servo.write(100);
+      break;
+
+    case GREEN:
+      slide_servo.write(50);
+      break;
+
+    case PURPLE:
+      slide_servo.write(30);
+      break;
+
+    case NONE:
+      Serial.println("No skittle detected");
   }
 }
 
@@ -246,7 +250,7 @@ void setup() {
     Serial.println("Connected to sensor.");
   } else {
     Serial.println("Sensor not found.");
-    while (1);
+    while (1);  // infinite loop effectively ends program
   }
 
   top_servo.write(top_servo_angle.drop); // Return to default state
@@ -273,7 +277,7 @@ void loop() {
 
     top_servo.write(top_servo_angle.sort);
     delay(1000);
-    exit(0);
+    while (1);
   }
 
   top_servo.write(top_servo_angle.sense);
